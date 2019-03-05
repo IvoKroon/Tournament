@@ -17,37 +17,58 @@ function findPositionById(id) {
     }
   }
   switch (position) {
-    case 1:
+    case 0:
       return "first place";
-    case 2:
+    case 1:
       return "second place";
-    case 3:
+    case 2:
       return "third place";
-    case 4:
+    case 3:
       return "fourth place";
     default:
       return null;
   }
 }
 
+function getRequestId(event) {
+  const { slots } = event.request.intent;
+  return slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id;
+}
+function getTeam(requestId) {
+  return data.teams[requestId];
+}
+
 const handlers = {
   getTeam: function() {
     // console.log(data);
-    const { slots } = this.event.request.intent;
-    const requestId =
-      slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id;
-    console.log(requestId);
-    const { description, points, name } = data.teams[requestId];
+    const requestId = getRequestId(this.event);
+    const { name, points } = getTeam(requestId);
+
     const position = findPositionById(requestId);
     const message = `The team ${name} has ${points} points and there position is ${position}`;
-    // this.response.cardRenderer(SKILL_NAME, message);
-    // const { slots } = this.event.request.intent;
-    // const nameSlot = this.event.request.intent.slots.name.value;
-    // console.log(slots.name.value);
-    // // console.log(this.event.request.intent.slots.resolutions.resolutionsPerAuthority:)
-    // console.log(
-    //   slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id
-    // );
+    this.response.cardRenderer(SKILL_NAME, message);
+    this.response.speak(message);
+    this.emit(":responseReady");
+  },
+  getPoints: function() {
+    const requestId = getRequestId(this.event);
+    const { name, points } = getTeam(requestId);
+
+    const message = `The team ${name} has ${points} points`;
+    this.response.cardRenderer(SKILL_NAME, message);
+    this.response.speak(message);
+    this.emit(":responseReady");
+  },
+  getGoals: function() {
+    const requestId = getRequestId(this.event);
+    const { name, goals } = getTeam(requestId);
+    let message = "";
+    if (goals > 1) {
+      message = `The team ${name} has a total of ${goals} goals scored`;
+    } else {
+      message = `The team ${name} has scored ${goals} goal`;
+    }
+    this.response.cardRenderer(SKILL_NAME, message);
     this.response.speak(message);
     this.emit(":responseReady");
   },
@@ -101,7 +122,6 @@ const handlers = {
 };
 
 exports.handler = function(event, context, callback) {
-  console.log("HANDELE");
   const alexa = Alexa.handler(event, context, callback);
   alexa.appId = APP_ID;
   alexa.registerHandlers(handlers);
