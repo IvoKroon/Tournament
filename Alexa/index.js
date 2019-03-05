@@ -1,24 +1,56 @@
 "use strict";
 const Alexa = require("alexa-sdk");
-// const db = require("./friebaseInit");
-const { getLastAddedRecord, addInvoice } = require("./requests");
+const data = require("../data/index");
 
-//=========================================================================================================================================
-//TODO: The items below this comment need your attention.
-//=========================================================================================================================================
+const APP_ID = "amzn1.ask.skill.2285d1c7-cebc-475c-8ebe-9a9ea47625b2";
 
-//Replace with your app ID (OPTIONAL).  You can find this value at the top of your skill's page on http://developer.amazon.com.
-//Make sure to enclose your value in quotes, like this: const APP_ID = 'amzn1.ask.skill.bb4045e6-b3e8-4133-b650-72923c5980f1';
-const APP_ID = undefined;
-
-const SKILL_NAME = "Space Facts";
-const GET_FACT_MESSAGE = "Here's your fact: ";
-const HELP_MESSAGE =
-  "You can say tell me a space fact, or, you can say exit... What can I help you with?";
+const SKILL_NAME = "Tournament";
+const HELP_MESSAGE = "You can ask all sort of questions about the tournament.";
 const HELP_REPROMPT = "What can I help you with?";
 const STOP_MESSAGE = "Goodbye!";
 
+function findPositionById(id) {
+  let position = null;
+  for (let i = 0; i < data.tournament.length; i++) {
+    if (id == data.tournament[i].id) {
+      position = i;
+    }
+  }
+  switch (position) {
+    case 1:
+      return "first place";
+    case 2:
+      return "second place";
+    case 3:
+      return "third place";
+    case 4:
+      return "fourth place";
+    default:
+      return null;
+  }
+}
+
 const handlers = {
+  getTeam: function() {
+    // console.log(data);
+    const { slots } = this.event.request.intent;
+    const requestId =
+      slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id;
+    console.log(requestId);
+    const { description, points, name } = data.teams[requestId];
+    const position = findPositionById(requestId);
+    const message = `The team ${name} has ${points} points and there position is ${position}`;
+    // this.response.cardRenderer(SKILL_NAME, message);
+    // const { slots } = this.event.request.intent;
+    // const nameSlot = this.event.request.intent.slots.name.value;
+    // console.log(slots.name.value);
+    // // console.log(this.event.request.intent.slots.resolutions.resolutionsPerAuthority:)
+    // console.log(
+    //   slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id
+    // );
+    this.response.speak(message);
+    this.emit(":responseReady");
+  },
   LaunchRequest: function() {
     getLastAddedRecord().then(data => {
       console.log(data);
@@ -60,13 +92,18 @@ const handlers = {
   "AMAZON.StopIntent": function() {
     this.response.speak(STOP_MESSAGE);
     this.emit(":responseReady");
+  },
+  "AMAZON.FallbackIntent": function() {
+    console.log(this.event);
+    this.response.speak("Error");
+    this.emit(":responseReady");
   }
 };
 
 exports.handler = function(event, context, callback) {
   console.log("HANDELE");
   const alexa = Alexa.handler(event, context, callback);
-  alexa.appId = "amzn1.ask.skill.359cc750-0673-4103-bb1f-824844c93667";
+  alexa.appId = APP_ID;
   alexa.registerHandlers(handlers);
   alexa.execute();
 };
