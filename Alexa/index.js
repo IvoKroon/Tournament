@@ -1,6 +1,6 @@
 "use strict";
 const Alexa = require("alexa-sdk");
-const data = require("../data/index");
+const {findPositionById, getTeam} = require('../data/dataHandler');
 
 const APP_ID = "amzn1.ask.skill.2285d1c7-cebc-475c-8ebe-9a9ea47625b2";
 
@@ -9,38 +9,14 @@ const HELP_MESSAGE = "You can ask all sort of questions about the tournament.";
 const HELP_REPROMPT = "What can I help you with?";
 const STOP_MESSAGE = "Goodbye!";
 
-function findPositionById(id) {
-  let position = null;
-  for (let i = 0; i < data.tournament.length; i++) {
-    if (id == data.tournament[i].id) {
-      position = i;
-    }
-  }
-  switch (position) {
-    case 0:
-      return "first place";
-    case 1:
-      return "second place";
-    case 2:
-      return "third place";
-    case 3:
-      return "fourth place";
-    default:
-      return null;
-  }
-}
 
 function getRequestId(event) {
   const { slots } = event.request.intent;
   return slots.name.resolutions.resolutionsPerAuthority[0].values[0].value.id;
 }
-function getTeam(requestId) {
-  return data.teams[requestId];
-}
 
 const handlers = {
   getTeam: function() {
-    // console.log(data);
     const requestId = getRequestId(this.event);
     const { name, points } = getTeam(requestId);
 
