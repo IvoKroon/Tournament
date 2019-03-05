@@ -1,0 +1,20 @@
+{
+	"body": {
+		"version": "1.0",
+		"response": {
+			"outputSpeech": {
+				"type": "SSML",
+				"ssml": "<speak> Here's your fact: WOWAAAA </speak>"
+			},
+			"card": {
+				"type": "Simple",
+				"title": "Space Facts",
+				"content": "WOWAAAA"
+			},
+			"shouldEndSession": true,
+			"type": "_DEFAULT_RESPONSE"
+		},
+		"sessionAttributes": {},
+		"userAgent": "ask-nodejs/1.0.25 Node/v6.10.3"
+	}
+}
