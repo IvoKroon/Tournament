@@ -24,4 +24,14 @@ const getTeam = function(requestId) {
   return data.teams[requestId];
 };
 
-module.exports = { findPositionById, getTeam };
+const findIdByName = function(name) {
+  let position = null;
+  for (let i = 0; i < data.teams.length; i++) {
+    if (data.teams[i].name.toLowerCase().indexOf(name.toLowerCase()) > -1) {
+      position = i;
+    }
+  }
+  return position;
+};
+
+module.exports = { findPositionById, getTeam, findIdByName };
