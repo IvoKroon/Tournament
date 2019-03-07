@@ -1,67 +1,121 @@
-var mqtt = require("mqtt");
-// const say = require("say");
-// var AWS = require("aws-sdk");
+const { Hermes, Dialog, withHermes } = require("hermes-javascript");
+// const hermes = new Hermes();
+const {
+  getTeam,
+  findPositionById,
+  findIdByName
+} = require("../data/dataHandler");
+// const dialog = hermes.dialog();
+console.log("starting");
 
-var hostname = "mqtt://localhost:1883";
-var client = mqtt.connect(hostname);
+let favouriteId = null;
 
-client.on("connect", function() {
-  console.log("[Snips Log] Connected to MQTT broker " + hostname);
-  client.subscribe("hermes/#");
-});
+const setFavourite = function(id) {
+  favouriteId = id;
+};
 
-client.on("message", function(topic, message) {
-  // console.log(topic);
-  if (topic === "hermes/asr/startListening") {
-    onListeningStateChanged(true);
-  } else if (topic === "hermes/asr/stopListening") {
-    onListeningStateChanged(false);
-  } else if (topic.match(/hermes\/hotword\/.+\/detected/g) !== null) {
-    onHotwordDetected();
-  } else if (topic.match(/hermes\/intent\/.+/g) !== null) {
-    onIntentDetected(JSON.parse(message));
-  }
-});
-function getParameters(intent) {
-  console.log(intent.slots);
-  return intent.slots;
-}
+const teamResponseById = function(teamId) {
+  const teamData = getTeam(teamId);
+  const position = findPositionById(teamId);
 
-function Sum(number1, number2) {
-  return Number(number1) + Number(number2);
-}
+  // Use text to speech
+  return `The team ${teamData.name} has ${
+    teamData.points
+  } points and there position is ${position}`;
+};
 
-function onIntentDetected(intent) {
-  // getParameters(intent);
-  // console.log(intent.intent);
-  // console.log(intent);
-  switch (intent.intent.intentName) {
-    case "ivokroon:ComputeSum":
-      console.log(intent.slots);
-      console.log(intent.slots.length);
-      if (intent.slots.length === 2) {
-        console.log(intent.slots[0].value.value);
-        console.log(intent.slots[1].value.value);
-        const data = Sum(
-          intent.slots[0].value.value,
-          intent.slots[1].value.value
-        );
-        console.log("number add");
-        client.publish('presence', 'Hello mqtt')
-        // say.speak("The answer is " + data, "Alex");
-        console.log("anwser", data);
+const teamResponseByName = function(name) {
+  const teamId = findIdByName(name);
+  const teamData = getTeam(teamId);
+  const position = findPositionById(teamId);
+
+  // Use text to speech
+  return `The team ${teamData.name} has ${
+    teamData.points
+  } points and there position is ${position}`;
+};
+
+withHermes(hermes => {
+  console.log("Starting with");
+  // Instantiate a dialog object
+  const dialog = hermes.dialog();
+
+  dialog.flow(
+    "ivokroon:getTeam",
+    (msg, flow) => {
+      console.log("fav", favouriteId);
+      if (msg.slots.length > 0) {
+        flow.end();
+        return teamResponseByName(msg.slots[0].value.value);
       } else {
-        client.publish('presence', 'Hello mqtt')
-        // say.speak("I need two", "Alex");
+        if (favouriteId === null) {
+          flow.continue("ivokroon:getTeam-NoName", (msg, flow) => {
+            flow.end();
+            return teamResponseByName(msg.slots[0].value.value);
+          });
+          return "What is the name of the team?";
+          // flow.end();
+          // Use text to speech
+          // return `What is the team called?`;
+        } else {
+          console.log("Getting fav team", favouriteId);
+          flow.end();
+          return teamResponseById(favouriteId);
+        }
       }
-      break;
-  }
-}
+    }
+  );
 
-function onHotwordDetected() {
-  console.log("[Snips Log] Hotword detected");
-}
+  dialog.flow(
+    "ivokroon:getGoals",
+    (msg, flow) => {
+      const teamId = findIdByName(msg.slots[0].value.value);
+      const teamData = getTeam(teamId);
+      const position = findPositionById(teamId);
 
-function onListeningStateChanged(listening) {
-  console.log("[Snips Log] " + (listening ? "Start" : "Stop") + " listening");
-}
+      flow.end();
+      // Use text to speech
+      return `The team ${teamData.name} has scored ${teamData.goals} goals`;
+    }
+  );
+  dialog.flow(
+    "ivokroon:setFavourite",
+    (msg, flow) => {
+      const favouriteId = findIdByName(msg.slots[0].value.value);
+      console.log(favouriteId);
+      setFavourite(favouriteId);
+
+      flow.end();
+      // Use text to speech
+      return `I set favourite`;
+    }
+  );
+
+  dialog.flow(
+    "ivokroon:getPoints",
+
+    (msg, flow) => {
+      console.log("THE SCPRE");
+      const teamId = findIdByName(msg.slots[0].value.value);
+      const teamData = getTeam(teamId);
+      const position = findPositionById(teamId);
+
+      flow.end();
+      // Use text to speech
+      return `The team ${teamData.name} score is ${teamData.points} points`;
+    }
+  );
+
+  // Subscribes to intent 'myIntent'
+  dialog.flow(
+    "ivokroon:ComputeSum",
+    (msg, flow) => {
+      // Log intent message
+      console.log(JSON.stringify(msg));
+      // End the session
+      flow.end();
+      // Use text to speech
+      return `Received message for intent`;
+    }
+  );
+});

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "nodemon hermes.js",
+    "run": "nodemon index.js",
     "start": " brew services start mosquitto && brew services start snips-audio-server && brew services start snips-hotword && brew services start snips-tts && brew services start snips-nlu && brew services start snips-asr && brew services start snips-dialogue && nodemon index.js",
     "stop": "brew services stop mosquitto && brew services stop snips-audio-server && brew services stop snips-hotword && brew services stop snips-tts && brew services stop snips-nlu && brew services stop snips-asr && brew services stop snips-dialogue",
     "restart": "brew services restart mosquitto && brew services restart snips-audio-server && brew services restart snips-hotword && brew services restart snips-tts && brew services restart snips-nlu && brew services restart snips-asr && brew services restart snips-dialogue"
