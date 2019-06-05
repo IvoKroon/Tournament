@@ -1,28 +1,7 @@
 # Alexa skill 
+In this directory, you will find the Alexa version of the Tournament skill. This is a test repository and you may see some terrible code.
 
-## start up
-Add for firebase the serviceAccountKey.json which you can find on firebase.
-
-````
-const db = function() {
-    var admin = require("firebase-admin");
-    var serviceAccount = require("./serviceAccountKey.json");
-  
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: "LINK TO FIREBASE"
-    });
-    admin.firestore().settings({ timestampsInSnapshots: true });
-    var db = admin.firestore();
-    return db;
-  };
-  
-  module.exports = db;
-````
-
-
-## Start up
-
+### Start
 ````
 npm install
 npm start

@@ -1,13 +1,12 @@
-const { Hermes, Dialog, withHermes } = require("hermes-javascript");
-// const hermes = new Hermes();
+const { withHermes } = require("hermes-javascript");
+// FOR GETTING THE DATA
 const {
   getTeam,
   findPositionById,
   findIdByName
 } = require("../data/dataHandler");
-// const dialog = hermes.dialog();
-console.log("starting");
 
+// Set your favourite
 let favouriteId = null;
 
 const setFavourite = function(id) {
@@ -36,8 +35,6 @@ const teamResponseByName = function(name) {
 };
 
 withHermes(hermes => {
-  console.log("Starting with");
-  // Instantiate a dialog object
   const dialog = hermes.dialog();
 
   dialog.flow(
@@ -71,7 +68,6 @@ withHermes(hermes => {
     (msg, flow) => {
       const teamId = findIdByName(msg.slots[0].value.value);
       const teamData = getTeam(teamId);
-      const position = findPositionById(teamId);
 
       flow.end();
       // Use text to speech
@@ -95,10 +91,8 @@ withHermes(hermes => {
     "ivokroon:getPoints",
 
     (msg, flow) => {
-      console.log("THE SCPRE");
       const teamId = findIdByName(msg.slots[0].value.value);
       const teamData = getTeam(teamId);
-      const position = findPositionById(teamId);
 
       flow.end();
       // Use text to speech
